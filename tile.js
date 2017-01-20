@@ -9,6 +9,8 @@ function Tile(col, row) {
     this.y = col * w;
     this.size = w;
 
+    this.marked = false;
+
     this.display = function () {
         //this handles the values and sets the right colors in display
         switch (this.number) {
@@ -21,11 +23,15 @@ function Tile(col, row) {
         case 3:
             this.colorVal = color(255, 255, 0);
             break;
+        case 4:
+            this.colorVal = color(0, 191, 255);
+            break;
         default:
+            this.colorVal = color(0, 0, 0);
             break;
         }
         fill(0);
-        stroke(155);
+        noStroke();
         fill(this.colorVal);
         rect(this.x, this.y, this.size, this.size);
         if (this.showText) {
@@ -38,10 +44,17 @@ function Tile(col, row) {
     }
 
     this.clicked = function () {
-        if (mouseX > this.x && mouseY > this.y && mouseX < this.x + this.size && mouseY < this.y + this.size) {
-            this.colorVal = color(15);
-            this.showText = !this.showText;
-            console.log(this.x, this.y);
+        if (this.number > 0) {
+            if (mouseX > this.x && mouseY > this.y && mouseX < this.x + this.size && mouseY < this.y + this.size) {
+                totalScore += this.number;
+                this.number--;
+                updateScoreText(totalScore);
+                return true;
+                //this.marked = true;
+                //this.showText = !this.showText;
+                //console.log(this.x, this.y);
+            }
         }
+        return false;
     }
 }

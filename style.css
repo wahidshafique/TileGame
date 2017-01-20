@@ -3,11 +3,24 @@ body {
     height: 100%;
 }
 
-body {
+body:not(.text) {
+    padding: 0;
     margin: 0;
     display: flex;
+    flex-direction: column;
     /* This centers our sketch horizontally. */
     justify-content: center;
     /* This centers our sketch vertically. */
     align-items: center;
+}
+
+.text-header {
+    padding: 0 !important;
+    font-size: 50;
+    font-weight: bold;
+}
+
+.text-footer-score {
+    font-size: 50;
+    font-weight: bold;
 }
