@@ -2,6 +2,7 @@ function Tile(col, row) {
     //this.number = floor(random(1, 4));
     this.number = 1;
 
+    this.visible = false;
     this.showText = true;
     this.colorVal = color(0);
     this.textColor = 0;
@@ -9,26 +10,27 @@ function Tile(col, row) {
     this.y = col * w;
     this.size = w;
 
-    this.marked = false;
-
     this.display = function () {
-        //this handles the values and sets the right colors in display
-        switch (this.number) {
-        case 1:
-            this.colorVal = color(227, 108, 10);
-            break;
-        case 2:
-            this.colorVal = color(255, 192, 0);
-            break;
-        case 3:
-            this.colorVal = color(255, 255, 0);
-            break;
-        case 4:
-            this.colorVal = color(0, 191, 255);
-            break;
-        default:
-            this.colorVal = color(0, 0, 0);
-            break;
+        if (this.visible) {
+            switch (this.number) {
+            case 1:
+                this.colorVal = color(227, 108, 10);
+                break;
+            case 2:
+                this.colorVal = color(255, 192, 0);
+                break;
+            case 3:
+                this.colorVal = color(255, 255, 0);
+                break;
+            case 4:
+                this.colorVal = color(0, 191, 255);
+                break;
+            default:
+                this.colorVal = color(0, 0, 0);
+                break;
+            }
+        } else {
+            this.colorVal = color(100, 100, 100);
         }
         fill(0);
         noStroke();
@@ -48,9 +50,8 @@ function Tile(col, row) {
             if (mouseX > this.x && mouseY > this.y && mouseX < this.x + this.size && mouseY < this.y + this.size) {
                 totalScore += this.number;
                 this.number--;
-                updateScoreText(totalScore);
+                scoreText.innerHTML = "Score: " + totalScore;
                 return true;
-                //this.marked = true;
                 //this.showText = !this.showText;
                 //console.log(this.x, this.y);
             }

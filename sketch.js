@@ -8,27 +8,55 @@ var switcher = true;
 var canScan = false;
 
 var totalScore = 0;
+
 var scoreText;
+var clickText;
+
+var maxClicks = 3;
+const maxSpecial = 6;
 
 function setup() {
+    scoreText = document.getElementById("score");
+    clickText = document.getElementById("clicks");
     //    button = createButton('submit');
-    //    button.position(150, 65);
+    //    button.position(600, 76);
     //    button.mousePressed(function () {
     //        canScan = !canScan;
     //    });
 
     canvas = createCanvas(800, 800);
+
     //width of the squares
     w = 50;
     columns = 16;
     rows = 16;
-    //make the random coordinates for the blocks
 
-    //first run to just make the object array
+    //this creates an array to use for grid
     populateTiles();
-    populateBorder();
+
+    //create the special tiles 
+    for (var i = 0; i < maxSpecial; i++) {
+        populateBorder();
+    }
+
     //draw the updated tiles
     drawboard();
+}
+
+//callback to just loop over the board anonymously
+function loopBoard(arg) {
+    for (var x = 0; x < rows; x++) {
+        for (var y = 0; y < columns; y++) {
+            arg(x, y);
+        }
+    }
+}
+
+//simply display the board
+function drawboard() {
+    loopBoard(function (x, y) {
+        board[x][y].display();
+    });
 }
 
 //the initial array of objects is made here
@@ -36,28 +64,17 @@ function populateTiles() {
     for (var j = 0; j < columns; j++) {
         board[j] = new Array(rows);
     }
-    for (var x = 0; x < rows; x++) {
-        for (var y = 0; y < columns; y++) {
-            board[x][y] = new Tile(x, y);
-        }
-    }
+    loopBoard(function (x, y) {
+        board[x][y] = new Tile(x, y);
+    });
 }
 
-function drawboard() {
-    for (var x = 0; x < rows; x++) {
-        for (var y = 0; y < columns; y++) {
-            board[x][y].display();
-        }
-    }
-}
-
+//make the special tiles
 function populateBorder() {
     var randX = Math.floor(random(rows - 1));
     var randY = Math.floor(random(columns - 1));
 
     board[randX][randY].number = 4;
-
-    var innerPop = [];
 
     //populate inner edge
     for (var i = -1; i < 2; i++) {
@@ -70,7 +87,6 @@ function populateBorder() {
                 if (tB) {
                     if (tB.number === 1) {
                         tB.number = 3;
-                        innerPop.push(i + j);
                     }
                 }
             } catch (e) {
@@ -97,31 +113,9 @@ function populateBorder() {
             }
         }
     }
-    console.log(innerPop);
 }
 
-
 function depopulateBorder(x, y) {
-    //depopulate inner edge
-    for (var i = -1; i < 2; i++) {
-        for (var j = -1; j < 2; j++) {
-            if (i === 0 && j == 0) {
-                continue;
-            }
-            try {
-                var tB = board[x + i][y + j];
-                if (tB) {
-                    if (innerPop(tB.number) !== -1) {
-                        console.log(tB.number);
-                        tB.number -= 1;
-                    }
-                }
-            } catch (e) {
-                continue;
-            }
-        }
-    }
-    //depopulate outer edges
     for (var i = -2; i < 3; i++) {
         for (var j = -2; j < 3; j++) {
             if (i === 0 && j == 0) {
@@ -130,8 +124,7 @@ function depopulateBorder(x, y) {
             try {
                 var tB = board[x + i][y + j];
                 if (tB) {
-                    console.log(board[x][y].number);
-                    if (tB.number !== 1) {
+                    if (tB.number > 1) {
                         tB.number -= 1;
                     }
                 }
@@ -142,32 +135,50 @@ function depopulateBorder(x, y) {
     }
 }
 
-function posMap(index, xMod, yMod) {
-    xMod = xMod || 0;
-    yMod = yMod || 0;
-    return ((index % rows) + xMod) + ((index / rows) + yMod) * rows;
-}
+function viewScannedTiles(x, y) {
+    board[x][y].visible = true;
 
-function mousePressed() {
-    var res = false;
-    // if (canScan) {
-    switcher = false;
-
-    for (var x = 0; x < rows; x++) {
-        for (var y = 0; y < columns; y++) {
-            var index = x + y * rows;
-            res = board[x][y].clicked();
-            if (res) {
-                depopulateBorder(x, y);
+    for (var i = -1; i < 2; i++) {
+        for (var j = -1; j < 2; j++) {
+            if (i === 0 && j == 0) {
+                continue;
+            }
+            try {
+                var tB = board[x + i][y + j];
+                if (tB) {
+                    tB.visible = true;
+                }
+            } catch (e) {
+                continue;
             }
         }
     }
-    drawboard();
 }
 
-function updateScoreText(score) {
-    if (scoreText) {
-        scoreText.remove();
+function mousePressed() {
+    if (maxClicks > 0) {
+        var res = false;
+        // if (canScan) {
+        switcher = false;
+
+        loopBoard(function (x, y) {
+            var index = x + y * rows;
+            res = board[x][y].clicked();
+            if (res) {
+                maxClicks--;
+                clickText.innerHTML = "Clicks: " + maxClicks;
+                viewScannedTiles(x, y);
+                depopulateBorder(x, y);
+
+            }
+        });
+        drawboard();
     }
-    scoreText = createP("Score: " + score).addClass('text-footer-score');
+}
+
+function keyPressed() {
+    loopBoard(function (x, y) {
+        board[x][y].showText = !board[x][y].showText;
+    });
+    drawboard();
 }
