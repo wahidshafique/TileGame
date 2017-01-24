@@ -206,17 +206,13 @@ function gameOverFun() {
     if (!gameOver) {
         clear();
         console.log("GAME OVER!");
-        document.getElementById("switch").style.display = "none";
+        document.getElementById("switch").style.visibility = "hidden";
         var p = document.getElementsByTagName("p");
-        p[1].style.marginLeft = "42%";
+        p[1].style.marginLeft = "45%";
         p[1].className += " jumpy";
         for (var i = 2; i < p.length; i++) {
-            p[i].style.display = "none";
+            p[i].style.visibility = "hidden";
         }
-        //        loopBoard(function (x, y) {
-        //            console.log("test");
-        //            viewScannedTiles(x, y)
-        //        });
         endShow(columns - 1, rows - 1);
         gameOver = true;
     }
