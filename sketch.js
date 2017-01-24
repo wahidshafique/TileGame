@@ -1,11 +1,16 @@
+var gameOver = false;
+
 var w;
 var columns;
 var rows;
 var board = [];
 var randArray;
 
-var switcher = true;
-var canScan = false;
+//initially we are in scan mode, so it is true
+var canScan = true;
+var scanClicks = 6;
+
+var canExtract = false;
 
 var totalScore = 0;
 
@@ -15,15 +20,42 @@ var clickText;
 var maxClicks = 3;
 const maxSpecial = 6;
 
-function setup() {
-    scoreText = document.getElementById("score");
-    clickText = document.getElementById("clicks");
-    //    button = createButton('submit');
-    //    button.position(600, 76);
-    //    button.mousePressed(function () {
-    //        canScan = !canScan;
-    //    });
 
+var scanCheck;
+
+//set up the dom events seperately here
+//add a listener to the checkbox element 
+document.addEventListener("DOMContentLoaded", function (event) {
+    scoreText = document.getElementById("score");
+    //you are in scan mode, so your scan clicks are shown
+    clickText = document.getElementById("clicks");
+    clickText.innerHTML = "Scan Clicks: " + scanClicks;
+
+    var selectorText = document.getElementById("scanmode");
+    var selector = document.getElementById('scancheck');
+
+    //vanity styling
+    var canvColor = document.getElementsByTagName("canvas");
+    selector.addEventListener('change', function (event) {
+        if (selector.checked) {
+            selectorText.innerHTML = "extract mode ";
+            clickText.innerHTML = "Clicks: " + maxClicks;
+
+            canExtract = true;
+            canScan = false;
+            canvColor[0].style.border = "10px inset #2196f3";
+        } else {
+            selectorText.innerHTML = "scan mode";
+            clickText.innerHTML = "Scan Clicks: " + scanClicks;
+
+            canExtract = false;
+            canScan = true;
+            canvColor[0].style.border = "10px inset brown";
+        }
+    });
+});
+
+function setup() {
     canvas = createCanvas(800, 800);
 
     //width of the squares
@@ -39,7 +71,7 @@ function setup() {
         populateBorder();
     }
 
-    //draw the updated tiles
+    //draw the updated tiles on first run
     drawboard();
 }
 
@@ -52,14 +84,14 @@ function loopBoard(arg) {
     }
 }
 
-//simply display the board
+//display the board
 function drawboard() {
     loopBoard(function (x, y) {
         board[x][y].display();
     });
 }
 
-//the initial array of objects is made here
+//the initial array of objects is made here [16][16]
 function populateTiles() {
     for (var j = 0; j < columns; j++) {
         board[j] = new Array(rows);
@@ -94,7 +126,7 @@ function populateBorder() {
             }
         }
     }
-    //populate outer edges
+    //populate outer edges 
     for (var i = -2; i < 3; i++) {
         for (var j = -2; j < 3; j++) {
             if (i === 0 && j == 0) {
@@ -115,6 +147,7 @@ function populateBorder() {
     }
 }
 
+//decrement the special tiles by 1 
 function depopulateBorder(x, y) {
     for (var i = -2; i < 3; i++) {
         for (var j = -2; j < 3; j++) {
@@ -135,6 +168,8 @@ function depopulateBorder(x, y) {
     }
 }
 
+
+//when you are in scan mode..
 function viewScannedTiles(x, y) {
     board[x][y].visible = true;
 
@@ -156,26 +191,82 @@ function viewScannedTiles(x, y) {
 }
 
 function mousePressed() {
-    if (maxClicks > 0) {
-        var res = false;
-        // if (canScan) {
-        switcher = false;
+    if (maxClicks === 0) {
+        gameOverFun();
+    } else if (canScan) {
+        scanBoard();
+    } else if (canExtract) {
+        extractBoard();
+    }
+    drawboard();
+}
 
-        loopBoard(function (x, y) {
-            var index = x + y * rows;
-            res = board[x][y].clicked();
-            if (res) {
-                maxClicks--;
-                clickText.innerHTML = "Clicks: " + maxClicks;
-                viewScannedTiles(x, y);
-                depopulateBorder(x, y);
-
-            }
-        });
-        drawboard();
+function gameOverFun() {
+    //end condition!
+    if (!gameOver) {
+        clear();
+        console.log("GAME OVER!");
+        document.getElementById("switch").style.display = "none";
+        var p = document.getElementsByTagName("p");
+        p[1].style.marginLeft = "42%";
+        p[1].className += " jumpy";
+        for (var i = 2; i < p.length; i++) {
+            p[i].style.display = "none";
+        }
+        //        loopBoard(function (x, y) {
+        //            console.log("test");
+        //            viewScannedTiles(x, y)
+        //        });
+        endShow(columns - 1, rows - 1);
+        gameOver = true;
     }
 }
 
+function endShow(i, j) {
+    if (i < 0) {
+        i = columns - 1;
+        --j;
+    }
+    if (j < 0) return;
+    setTimeout(function () {
+        board[i][j].visible = true;
+        drawboard();
+        endShow(--i, j);
+    }, 10);
+}
+
+function scanBoard() {
+    if (scanClicks > 0) {
+        loopBoard(function (x, y) {
+            if (board[x][y].checked()) {
+                viewScannedTiles(x, y);
+            }
+        })
+    }
+}
+
+function extractBoard() {
+    if (maxClicks > 0) {
+        loopBoard(function (x, y) {
+            if (board[x][y].clicked()) {
+                depopulateBorder(x, y);
+            }
+        });
+    }
+}
+
+//little visual for the end
+//var tempX = 0;
+//var tempY = 0;
+
+//function draw() {
+//    if (gameOver) {
+//        tempX++, tempY++;
+//        board[tempX][tempY].visible = true;
+//    }
+//}
+
+//debugging purposes
 function keyPressed() {
     loopBoard(function (x, y) {
         board[x][y].showText = !board[x][y].showText;
