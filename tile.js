@@ -58,16 +58,14 @@ function Tile(col, row) {
 
     //describes when you click a tile for points
     this.clicked = function () {
-        if (this.number > 0) {
-            if (mouseX > this.x && mouseY > this.y && mouseX < this.x + this.size && mouseY < this.y + this.size) {
-                totalScore += this.number;
-                this.number--;
-                maxClicks--;
-                //extra 0's to make people feel not only meaningful but sacred
-                scoreText.innerHTML = "Score: " + totalScore + "000";
-                clickText.innerHTML = "Clicks: " + maxClicks;
-                return true;
-            }
+        if (mouseX > this.x && mouseY > this.y && mouseX < this.x + this.size && mouseY < this.y + this.size) {
+            totalScore += this.number;
+            this.number = 1;
+            maxClicks--;
+            //extra 0's to make people feel meaningful 
+            scoreText.innerHTML = "Score: " + totalScore + "000";
+            clickText.innerHTML = "Clicks: " + maxClicks;
+            return true;
         }
         return false;
     }
